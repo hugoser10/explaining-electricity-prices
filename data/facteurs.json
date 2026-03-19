@@ -17,7 +17,7 @@
 
     "weather" : [
         "DE_RAIN", "FR_RAIN", "DE_WIND", "FR_WIND", "DE_TEMP", "FR_TEMP"
-        ], 
+        ],
 
     "commodity_price" : [
         "GAS_RET", "COAL_RET", "CARBON_RET"
