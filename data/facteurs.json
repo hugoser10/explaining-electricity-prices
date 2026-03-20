@@ -1,0 +1,25 @@
+{
+    "to_keep" : [
+        "ID", "DAY_ID", "COUNTRY"
+        ],
+        
+    "production" : [
+        "DE_GAS", "FR_GAS", "DE_COAL", "FR_COAL", "DE_HYDRO", "FR_HYDRO", "DE_NUCLEAR", "FR_NUCLEAR", "DE_SOLAR", "FR_SOLAR", "DE_WINDPOW", "FR_WINDPOW", "DE_LIGNITE"
+       ], 
+       
+    "consumption" : [
+        "DE_CONSUMPTION", "FR_CONSUMPTION", "DE_RESIDUAL_LOAD", "FR_RESIDUAL_LOAD"
+        ], 
+
+    "exchange" : [
+        "DE_FR_EXCHANGE", "FR_DE_EXCHANGE", "DE_NET_EXPORT", "FR_NET_EXPORT", "DE_NET_IMPORT", "FR_NET_IMPORT"
+       ],
+
+    "weather" : [
+        "DE_RAIN", "FR_RAIN", "DE_WIND", "FR_WIND", "DE_TEMP", "FR_TEMP"
+        ],
+
+    "commodity_price" : [
+        "GAS_RET", "COAL_RET", "CARBON_RET"
+        ]
+}
