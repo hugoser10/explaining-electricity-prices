@@ -1,6 +1,6 @@
 {
     "to_keep" : [
-        "ID", "DAY_ID", "COUNTRY"
+        "DAY_ID", "COUNTRY"
         ],
         
     "production" : [
@@ -24,6 +24,6 @@
         ], 
     
     "other_features" : [
-        "DE_BALANCE", "DE_TEMP_X_CONS", "DE_TOTAL_RENEW", "FR_BALANCE", "FR_TEMP_X_CONS", "FR_TOTAL_RENEW", "MARGINAL_COAL", "MARGINAL_GAS", "SPREAD_GAS_COAL"
+        "MARGINAL_COAL", "MARGINAL_GAS"
         ]
 }
