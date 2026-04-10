@@ -1,12 +1,10 @@
+import os
 import numpy as np
 import pandas as pd
-import os
-import json
+from sklearn.impute import SimpleImputer
+
 import warnings
 warnings.filterwarnings('ignore')
-
-SEED = 42
-np.random.seed(SEED)
 
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 DATA_DIR = os.path.join(ROOT_DIR, "data/")
@@ -29,19 +27,23 @@ def load_raw_data():
 
 # Fill nans
 def fill_na(df, x_test):
-    cols_to_fill = [col for col in df.columns if df[col].isnull().sum() > 0]
-    medians = df[cols_to_fill].median()
+    cols_to_fill = df.select_dtypes(include='number').columns.tolist()
+    cols_to_fill = [col for col in cols_to_fill if col != 'TARGET']
 
-    df_filled     = df.copy()
+    imputer = SimpleImputer(strategy='median')
+
+    # Fit sur le train
+    df_train_filled = df.copy()
+    df_train_filled[cols_to_fill] = imputer.fit_transform(df[cols_to_fill])
+
+    # Transform sur train et test
     x_test_filled = x_test.copy()
+    x_test_filled[cols_to_fill] = imputer.transform(x_test_filled[cols_to_fill])
 
-    df_filled[cols_to_fill]     = df[cols_to_fill].fillna(medians)
-    x_test_filled[cols_to_fill] = x_test[cols_to_fill].fillna(medians)
+    assert df_train_filled.isnull().sum().sum() == 0, "NaN restants dans le train"
+    assert x_test_filled.isnull().sum().sum() == 0, "NaN restants dans le test"
 
-    print(f"Valeurs manquantes train : {df_filled.isnull().sum().sum()}")
-    print(f"Valeurs manquantes test  : {x_test_filled.isnull().sum().sum()}")
-
-    return df_filled, x_test_filled
+    return df_train_filled, x_test_filled
 
 # Run data import and preparation
 def run():
