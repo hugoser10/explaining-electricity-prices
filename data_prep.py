@@ -45,6 +45,21 @@ def fill_na(df, x_test):
 
     return df_train_filled, x_test_filled
 
+# Remove outliers in each country's target distribution
+def remove_target_outliers(df):
+    mask = pd.Series(True, index=df.index)
+
+    for country in df['COUNTRY'].unique():
+        y = df[df['COUNTRY'] == country]['TARGET']
+        Q1, Q3 = y.quantile(0.25), y.quantile(0.75)
+        IQR = Q3 - Q1
+        lower, upper = Q1 - 1.5 * IQR, Q3 + 1.5 * IQR
+        outlier_mask = (df['COUNTRY'] == country) & ((df['TARGET'] < lower) | (df['TARGET'] > upper))
+        mask &= ~outlier_mask
+        print(f"{country} — outliers retirés : {outlier_mask.sum()} ({outlier_mask.sum()/len(y)*100:.1f}%)")
+
+    return df[mask].reset_index(drop=True)
+
 # Run data import and preparation
 def run():
     os.makedirs(PROCESSED_DIR, exist_ok=True)
@@ -54,6 +69,9 @@ def run():
 
     # Fill nans
     train_filled, x_test_filled = fill_na(train, x_test)
+
+    # Remove outliers
+    train_filled = remove_target_outliers(train_filled)
 
     print(f"Train : {train_filled.shape}")
     print(f"Test : {x_test_filled.shape}")
