@@ -71,7 +71,7 @@ def run():
     train_filled, x_test_filled = fill_na(train, x_test)
 
     # Remove outliers
-    train_filled = remove_target_outliers(train_filled)
+    #train_filled = remove_target_outliers(train_filled)
 
     print(f"Train : {train_filled.shape}")
     print(f"Test : {x_test_filled.shape}")
