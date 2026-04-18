@@ -17,7 +17,7 @@ GAS_EFFICIENCY       = 0.5
 GAS_EMISSION_FACTOR  = 0.4
 COAL_EFFICIENCY      = 0.5
 COAL_EMISSION_FACTOR = 1
-
+id_cols = ['ID', 'COUNTRY', 'DAY_ID']
 
 def load_raw_data():
     '''
@@ -40,6 +40,32 @@ def load_raw_data():
     print(f"X_test  : {x_test.shape}")
 
     return train, x_test
+
+def drop_colinear_features(df, list_to_drop=None, threshold=1):
+    '''
+    Supprime les features colinéaires au-delà d'un seuil de corrélation.
+
+    Paramètres
+    ----------
+    df        : DataFrame  DataFrame avec features numériques.
+    list_to_drop : list   Liste des colonnes à supprimer. Si None, calcul automatique basé sur la matrice de corrélation.
+    threshold : float      Seuil de corrélation pour supprimer une feature.
+
+    Retourne
+    --------
+    df_reduced : DataFrame  DataFrame avec features colinéaires supprimées.
+    '''
+    if list_to_drop is None:
+        corr_matrix = df[[c for c in df.columns if c not in id_cols]].corr().abs()
+        upper_tri = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
+        to_drop = [col for col in upper_tri.columns if any(upper_tri[col] == threshold)]
+    else:
+        to_drop = list_to_drop
+    print(f"Features colinéaires à supprimer (corr = {threshold}): {to_drop}")
+    
+    df_reduced = df.drop(columns=to_drop)
+    
+    return df_reduced, to_drop
 
 
 def build_eco_features(train, x_test):
@@ -227,32 +253,34 @@ def run():
     # 1. Chargement
     train, x_test = load_raw_data()
 
-    # 2. Features économiques (avant standardisation)
+    # 2 Suppression des colonnes colinéaires
+    train, to_drop = drop_colinear_features(train, list_to_drop=['FR_NET_IMPORT', 'DE_NET_IMPORT','FR_DE_EXCHANGE'], threshold=1)
+    x_test = x_test.drop(columns=to_drop)
+
+    # 3. Features économiques (avant standardisation)
     print("\n── Construction des features économiques ──")
     train_eco, x_test_eco = build_eco_features(train, x_test)
 
-    # 3. Imputation par médiane globale
+    # 4. Imputation par médiane globale
     print("\n── Imputation (médiane globale, params du train) ──")
     train_filled, x_test_filled = fill_na(train_eco, x_test_eco)
 
-    # 4. Standardisation globale
+    # 5. Standardisation globale
     print("\n── Standardisation globale (params du train) ──")
     train_std, x_test_std = standardize(train_filled, x_test_filled)
 
-    # 5. Indexation par ID
+    # 6. Indexation par ID
     train_std.set_index('ID', inplace=True)
     x_test_std.set_index('ID', inplace=True)
 
-    # 6. Construction de y_train_pr
+    # 7. Construction de y_train_pr
     print("\n── Construction de y_train_pr ──")
     y_train_pr = build_y_train(train_std)
     print(f"y_train_pr : {y_train_pr.shape} | colonnes : {y_train_pr.columns.tolist()}")
 
     # x_train_pr : features uniquement (sans TARGET, COUNTRY, DAY_ID)
-    cols_drop_train = [c for c in ('COUNTRY', 'DAY_ID', 'TARGET')
-                       if c in train_std.columns]
-    cols_drop_test  = [c for c in ('COUNTRY', 'DAY_ID')
-                       if c in x_test_std.columns]
+    cols_drop_test  = [c for c in id_cols  if c in x_test_std.columns]
+    cols_drop_train = [c for c in id_cols + ['TARGET'] if c in train_std.columns]
 
     x_train_pr = train_std.drop(columns=cols_drop_train)
     x_test_pr  = x_test_std.drop(columns=cols_drop_test)
@@ -265,7 +293,7 @@ def run():
     x_test_pr.to_csv(PROCESSED_DIR  + "x_test_pr.csv",  index=True)
     y_train_pr.to_csv(PROCESSED_DIR + "y_train_pr.csv", index=True)
 
-    print(f"\n✅ Fichiers exportés dans {PROCESSED_DIR}")
+    print(f"\n Fichiers exportés dans {PROCESSED_DIR}")
     print(f"   x_train_pr.csv | x_test_pr.csv | y_train_pr.csv")
 
     return x_train_pr, x_test_pr, y_train_pr
